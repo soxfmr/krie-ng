@@ -123,3 +123,5 @@ events:
 
   ## action to check when a register_check fails on a sensitive kernel space hook point
   register_check: log
+
+  call_usermodehelper: log

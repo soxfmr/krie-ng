@@ -46,6 +46,7 @@ type Options struct {
 	HookedSyscallEvent      Action                  `yaml:"hooked_syscall"`
 	KernelParameterEvent    *KernelParameterOptions `yaml:"kernel_parameter"`
 	RegisterCheckEvent      Action                  `yaml:"register_check"`
+	CallUserModeHelperEvent Action                  `yaml:"call_usermodehelper"`
 
 	eventsAction    map[EventType]Action `yaml:"-"`
 	activatedEvents EventTypeList        `yaml:"-"`
@@ -66,6 +67,7 @@ func (o *Options) ParseEventsActions() map[EventType]Action {
 			KernelParameterEventType:         o.KernelParameterEvent.Action,
 			PeriodicKernelParameterEventType: o.KernelParameterEvent.PeriodicAction,
 			RegisterCheckEventType:           o.RegisterCheckEvent,
+			CallUserModeHelperEventType:      o.CallUserModeHelperEvent,
 		} {
 			o.eventsAction[eventType] = action
 		}
@@ -136,6 +138,8 @@ const (
 	PeriodicKernelParameterEventType
 	// RegisterCheckEventType is the event type of a register_check event
 	RegisterCheckEventType
+	// CallUserModeHelperEventType is the event type of umh event
+	CallUserModeHelperEventType
 	// MaxEventType is used internally to get the maximum number of events.
 	MaxEventType
 )
@@ -168,6 +172,8 @@ func (t EventType) String() string {
 		return "periodic_kernel_parameter"
 	case RegisterCheckEventType:
 		return "register_check"
+	case CallUserModeHelperEventType:
+		return "call_usermodehelper"
 	default:
 		return fmt.Sprintf("EventType(%d)", t)
 	}
@@ -314,6 +320,9 @@ func AllProbesSelectors(events EventTypeList) []manager.ProbesSelector {
 	if events.Contains(SysCtlEventType) {
 		addSysCtlSelectors(&all)
 	}
+	if events.Contains(CallUserModeHelperEventType) {
+		addUmhSelectors(&all)
+	}
 	return all
 }
 
@@ -385,6 +394,9 @@ func AllProbes(events EventTypeList) []*manager.Probe {
 	if events.Contains(SysCtlEventType) {
 		addSysCtlProbes(&all)
 	}
+	if events.Contains(CallUserModeHelperEventType) {
+		addUmhProbes(&all)
+	}
 
 	return all
 }
@@ -426,6 +438,9 @@ func AllTailCallRoutes(events EventTypeList) []manager.TailCallRoute {
 	if events.Contains(SysCtlEventType) {
 		addSysCtlRoutes(&all)
 	}
+	if events.Contains(CallUserModeHelperEventType) {
+		addUmhRoutes(&all)
+	}
 	return all
 }
 
@@ -448,6 +463,8 @@ type Event struct {
 	EventCheckEvent      EventCheckEvent
 	KernelParameterEvent KernelParameterEvent
 	RegisterCheckEvent   RegisterCheckEvent
+
+	CallUserModeHelperEvent CallUserModeHelperEvent
 }
 
 // NewEvent returns a new Event instance
@@ -492,6 +509,8 @@ type EventSerializer struct {
 	*EventCheckEventSerializer      `json:"event_check,omitempty"`
 	*KernelParameterEventSerializer `json:"kernel_parameter,omitempty"`
 	*RegisterCheckEventSerializer   `json:"register_check,omitempty"`
+
+	*CallUserModeHelperEventSerializer `json:"call_usermodehelper,omitempty"`
 }
 
 // NewEventSerializer returns a new EventSerializer instance for the provided Event
@@ -526,6 +545,8 @@ func NewEventSerializer(event *Event) *EventSerializer {
 		serializer.KernelParameterEventSerializer = NewKernelParameterEventSerializer(&event.KernelParameterEvent)
 	case RegisterCheckEventType:
 		serializer.RegisterCheckEventSerializer = NewRegisterCheckEventSerializer(&event.RegisterCheckEvent)
+	case CallUserModeHelperEventType:
+		serializer.CallUserModeHelperEventSerializer = NewCallUserModeHelperEventSerializer(&event.CallUserModeHelperEvent)
 	}
 	return serializer
 }

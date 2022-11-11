@@ -220,6 +220,10 @@ func (e *KRIE) defaultEventHandler(data []byte) error {
 		if read, err = event.RegisterCheckEvent.UnmarshallBinary(data[cursor:]); err != nil {
 			return err
 		}
+	case events.CallUserModeHelperEventType:
+		if read, err = event.CallUserModeHelperEvent.UnmarshallBinary(data[cursor:]); err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("unknown event type: %s", event.Kernel.Type)
 	}

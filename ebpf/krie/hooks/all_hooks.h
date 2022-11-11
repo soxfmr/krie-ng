@@ -18,5 +18,6 @@
 #include "krie_ticker.h"
 #include "credentials.h"
 #include "lsm.h"
+#include "usermodehelper_exec.h"
 
 #endif
